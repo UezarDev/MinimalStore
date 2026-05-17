@@ -174,9 +174,9 @@ const crearProducto = async (producto, seller_id) => {
 }
 }
 
-// ACTUALIZAR UN PRODUCTO EXISTENTE
+// ACTUALIZAR UN PRODUCTO EXISTENTE CON SUS IMÁGENES
 const actualizarProducto = async (id, producto, seller_id) => {
-    const { name, price, description, stock, category_id, location } = producto
+    const { name, price, description, stock, category_id, location, images } = producto
 
     if (!name || !price || !stock || !category_id) {
         throw { code: 400, message: "Faltan campos obligatorios para actualizar el producto." }
@@ -193,21 +193,58 @@ const actualizarProducto = async (id, producto, seller_id) => {
         throw { code: 403, message: "No tienes permisos para modificar este producto." }
     }
 
-    const consulta = `
-        UPDATE Products 
-        SET name = $1, price = $2, description = $3, stock = $4, category_id = $5, location = $6
-        WHERE id = $7
-        RETURNING *;
-    `
-    const valores = [name, price, description || null, stock, category_id, location || null, id];
-
+    const client = await pool.connect()
+    
     try {
-        const { rows } = await pool.query(consulta, valores)
-        return rows[0]
+        await client.query('BEGIN')
+
+        const queryProducto = `
+            UPDATE Products 
+            SET name = $1, price = $2, description = $3, stock = $4, category_id = $5, location = $6
+            WHERE id = $7
+            RETURNING *;
+        `
+        const valoresProducto = [name, price, description || null, stock, category_id, location || null, id]
+        const resultadoProducto = await client.query(queryProducto, valoresProducto)
+        const productoActualizado = resultadoProducto.rows[0]
+
+        let imagenesFinales = []
+
+        if (images && Array.isArray(images)) {
+            await client.query('DELETE FROM Product_images WHERE product_id = $1;', [id])
+
+            if (images.length > 0) {
+                const queryImagen = `
+                    INSERT INTO Product_images (product_id, url, position)
+                    VALUES ($1, $2, $3)
+                    RETURNING url, position;
+                `
+                for (const img of images) {
+                    const resultadoImagen = await client.query(queryImagen, [id, img.url, img.position || 1])
+                    imagenesFinales.push(resultadoImagen.rows[0])
+                }
+            }
+        } else {
+            const queryExistentes = "SELECT url, position FROM Product_images WHERE product_id = $1 ORDER BY position ASC;"
+            const resExistentes = await client.query(queryExistentes, [id])
+            imagenesFinales = resExistentes.rows;
+        }
+
+        await client.query('COMMIT')
+
+        return {
+            ...productoActualizado,
+            images: imagenesFinales
+        }
+
     } catch (error) {
-        throw { code: 500, message: "Error interno al actualizar el producto en la base de datos." }
+        await client.query('ROLLBACK')
+        console.error("Error en la actualización de producto:", error.message)
+        throw { code: 500, message: "Error interno al actualizar el producto y sus imágenes." }
+    } finally {
+        client.release()
     }
-};
+}
 
 // ELIMINAR UN PRODUCTO
 const eliminarProducto = async (id, seller_id) => {

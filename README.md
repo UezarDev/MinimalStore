@@ -43,3 +43,35 @@ MinimalStore es una plataforma donde los usuarios pueden comprar y vender artíc
 2. Navegar a la carpeta `proyecto-final/frontend`.
 3. Instalar dependencias: `npm install`.
 4. Ejecutar en modo desarrollo: `npm run dev`.
+
+---
+
+### Backend
+- **Node.js + Express**: Servidor rápido, modular y de arquitectura minimalista.
+- **PostgreSQL (Neon.tech)**: Base de datos relacional robusta alojada en la nube.
+- **JSON Web Tokens (JWT)**: Generación de sesiones seguras y protección de rutas.
+- **BcryptJS**: Algoritmo de encriptación segura para contraseñas de usuarios.
+- **Jest + Supertest**: Framework y librería para la automatización de pruebas integrales.
+
+## 📁 Estructura del Backend
+
+- `index.js`: Punto de entrada principal, configuración del servidor y endpoints.
+- `consultas.js`: Capa de datos con consultas SQL estructuradas y transacciones atómicas.
+- `middlewares.js`: Filtros de control (registro de peticiones, validación de JWT y verificación de roles).
+- `tests/`: Suite de pruebas automatizadas para la verificación de rutas públicas y protegidas.
+
+## ✨ Funcionalidades Principales
+
+1. **Autenticación Robusta**: Flujo seguro de registro y login con verificación estricta de credenciales.
+2. **Control de Acceso (RBAC)**: Middleware especializado para restringir rutas críticas exclusivamente a administradores.
+3. **Persistencia de Favoritos**: Registro relacional seguro y eliminación de productos enlazados a la sesión de cada usuario.
+4. **Gestión Transaccional**: Procesamiento seguro de órdenes de compra con rebaja de stock en tiempo real y reversión (`rollback`) ante fallos.
+5. **Estabilidad del Servidor**: Manejo global de errores 404 y reconexión automática ante la inactividad del pool de base de datos.
+
+## 📦 Instalación y Uso
+
+1. Navegar a la carpeta `proyecto-final/backend`.
+2. Duplicar `.env.example`, renombrarlo a `.env` y rellenar con las credenciales correspondientes.
+3. Instalar dependencias: `npm install`.
+4. Ejecutar en modo desarrollo: `npm run dev`.
+5. Correr suite de pruebas: `npm run test`.
