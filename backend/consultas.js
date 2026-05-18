@@ -4,7 +4,9 @@ require('dotenv').config()
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+    ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes('neon.tech')
+        ? { rejectUnauthorized: false }
+        : false
 })
 
 // FUNCIÓN DE REGISTRO
@@ -168,10 +170,12 @@ const crearProducto = async (producto, seller_id) => {
         }
 
     } catch (error) {
-    await client.query('ROLLBACK')
-    console.error("Error en la base de datos:", error.message)
-    throw { code: 500, message: "Error al guardar el producto y sus imágenes en la base de datos." }
-}
+        await client.query('ROLLBACK')
+        console.error("Error en la base de datos:", error.message)
+        throw { code: 500, message: "Error al guardar el producto y sus imágenes en la base de datos." }
+    } finally {
+        client.release()
+    }
 }
 
 // ACTUALIZAR UN PRODUCTO EXISTENTE CON SUS IMÁGENES
