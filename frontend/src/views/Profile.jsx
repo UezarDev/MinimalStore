@@ -63,11 +63,17 @@ const Profile = () => {
         name: editingPost.title || editingPost.name,
         price: parseInt(editingPost.price, 10),
         category_id: parseInt(editingPost.category_id || editingPost.category, 10) || 1,
-        images: editingPost.images.map(img => typeof img === 'object' ? img.url : img)
+        images: editingPost.images
+          .map(img => typeof img === 'object' ? img.url : img)
+          .filter(url => typeof url === 'string' && url.trim() !== "")
+          .map((url, idx) => ({
+            url: url.trim(),
+            position: idx + 1
+          }))
       };
 
       await api.put(`/products/${editingPost.id}`, payload);
-      setPosts(posts.map(p => p.id === editingPost.id ? { ...p, ...payload, images: payload.images.map((url, i) => ({ url, position: i+1 })) } : p));
+      setPosts(posts.map(p => p.id === editingPost.id ? { ...p, ...payload } : p));
       setEditingPost(null);
     } catch (err) {
       showAlert("Error al actualizar la publicación en la base de datos.");

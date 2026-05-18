@@ -63,8 +63,14 @@ const CreatePublication = () => {
       const payload = {
         ...formData,
         price: parseInt(formData.price, 10),
+        category_id: parseInt(formData.category_id, 10),
         stock: 1,
-        images: images.filter(url => url.trim() !== "")
+        images: images
+          .filter(url => url.trim() !== "")
+          .map((url, index) => ({
+            url: url.trim(),
+            position: index + 1
+          }))
       };
       
       await api.post("/products", payload);
