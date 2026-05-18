@@ -82,7 +82,8 @@ const verificarUsuario = async (email, password) => {
 // OBTENER TODOS LOS PRODUCTOS
 const obtenerProductos = async () => {
     const consulta = `
-        SELECT p.*, 
+        SELECT p.id, p.name, p.price, p.description, p.stock, p.category_id, p.seller_id, p.created_at,
+               COALESCE(u.location, p.location, 'No especificada') AS location,
                u.name AS seller_name,
                COALESCE(
                    json_agg(
@@ -92,7 +93,7 @@ const obtenerProductos = async () => {
         FROM Products p
         LEFT JOIN Product_images pi ON p.id = pi.product_id
         LEFT JOIN Users u ON p.seller_id = u.id
-        GROUP BY p.id, u.name
+        GROUP BY p.id, u.name, u.location
         ORDER BY p.created_at DESC;
     `
     try {
@@ -106,7 +107,8 @@ const obtenerProductos = async () => {
 // OBTENER UN PRODUCTO POR ID
 const obtenerProductoPorId = async (id) => {
     const consulta = `
-        SELECT p.*, 
+        SELECT p.id, p.name, p.price, p.description, p.stock, p.category_id, p.seller_id, p.created_at,
+               COALESCE(u.location, p.location, 'No especificada') AS location,
                u.name AS seller_name,
                u.email AS seller_email,
                u.phone AS seller_phone,
@@ -119,7 +121,7 @@ const obtenerProductoPorId = async (id) => {
         LEFT JOIN Product_images pi ON p.id = pi.product_id
         LEFT JOIN Users u ON p.seller_id = u.id
         WHERE p.id = $1
-        GROUP BY p.id, u.name, u.email, u.phone;
+        GROUP BY p.id, u.name, u.email, u.phone, u.location;
     `
     try {
         const { rows } = await pool.query(consulta, [id])
@@ -282,7 +284,9 @@ const eliminarProducto = async (id, seller_id) => {
 // OBTENER LOS FAVORITOS DE UN USUARIO
 const obtenerFavoritos = async (user_id) => {
     const consulta = `
-        SELECT f.id AS favorite_link_id, p.*,
+        SELECT f.id AS favorite_link_id, 
+               p.id, p.name, p.price, p.description, p.stock, p.category_id, p.seller_id, p.created_at,
+               COALESCE(u.location, p.location, 'No especificada') AS location,
                COALESCE(
                    json_agg(
                        json_build_object('url', pi.url, 'position', pi.position)
@@ -291,8 +295,9 @@ const obtenerFavoritos = async (user_id) => {
         FROM User_favorites f
         JOIN Products p ON f.product_id = p.id
         LEFT JOIN Product_images pi ON p.id = pi.product_id
+        LEFT JOIN Users u ON p.seller_id = u.id
         WHERE f.user_id = $1
-        GROUP BY f.id, p.id;
+        GROUP BY f.id, p.id, u.location;
     `
     try {
         const { rows } = await pool.query(consulta, [user_id])
