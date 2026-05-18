@@ -13,10 +13,12 @@ export const SessionProvider = ({ children }) => {
     }
   }, []);
 
-  const login = (userData) => {
+  const login = (userData, token) => {
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
-    localStorage.setItem("token", "dummy-jwt-token"); // Will be replaced by actual backend token
+    if (token) {
+      localStorage.setItem("token", token);
+    }
   };
 
   const logout = () => {
