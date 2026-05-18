@@ -1,18 +1,25 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSession } from "../context/SessionContext";
+import api from "../api/axios";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const { login } = useSession();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (email && password) {
-      login({ email, name: "Usuario Demo" });
+    setError("");
+    try {
+      const response = await api.post("/login", { email, password });
+      const { user, token } = response.data;
+      login(user, token);
       navigate("/catalogo");
+    } catch (err) {
+      setError(err.response?.data?.message || "Error al iniciar sesión. Intenta de nuevo.");
     }
   };
 
@@ -24,6 +31,7 @@ const Login = () => {
       </hgroup>
 
       <form onSubmit={handleSubmit} className="card">
+        {error && <p style={{ color: "var(--red-color, #ff4d4d)", marginBottom: "1rem", fontWeight: "bold" }}>{error}</p>}
         <label htmlFor="email">
           Email
           <input

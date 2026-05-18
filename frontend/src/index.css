@@ -95,18 +95,33 @@ nav:not(article nav, figure nav, form nav) ul {
 }
 
 input, select, textarea {
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border: none !important;
   border-radius: var(--radius-lg) !important;
   background: var(--background-color) !important;
   color: var(--text-main) !important;
   box-shadow: none !important;
   transition: all 0.2s ease;
-  padding: 1rem;
+  height: 52px !important;
+  padding: 0 1.2rem !important;
+  box-sizing: border-box !important;
   width: 100%;
 }
 
+textarea {
+  height: auto !important;
+  padding: 1rem 1.2rem !important;
+}
+
+select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background: var(--background-color) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 16px center / 16px !important;
+  padding-right: 2.5rem !important;
+}
+
 input:focus, select:focus, textarea:focus {
-  border: 1px solid var(--pink-color) !important;
+  border: none !important;
   box-shadow: 0 0 10px rgba(217, 70, 239, 0.3) !important;
   outline: none !important;
   background-color: var(--background-color) !important;
@@ -478,7 +493,9 @@ dialog {
   margin: 0;
   padding: 0;
   border: none;
-  display: block;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   overflow-y: auto;
   z-index: 1000;
   position: fixed;
@@ -486,15 +503,16 @@ dialog {
   left: 0;
 }
 
-dialog:not([open]) { display: none; }
+dialog:not([open]) { display: none !important; }
 
-dialog > article.card {
-  width: 100%;
-  max-width: 600px;
-  margin: 4rem auto;
+dialog > article, dialog > article.card {
+  width: 90% !important;
+  max-width: 500px !important;
+  margin: 0 auto !important;
   padding: 2rem;
   background-color: var(--surface-color) !important;
   overflow-y: visible;
+  border-radius: var(--radius-lg);
 }
 
 /* Product Detail PopUp */
@@ -535,4 +553,65 @@ dialog .embla__slide img {
 dialog .embla button {
   width: 60px !important;
   height: 60px !important;
+}
+
+/* Phone Pill Class */
+.phone {
+  display: flex;
+  align-items: stretch;
+  height: 52px;
+}
+
+.phone select, .phone input {
+  height: 100% !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+}
+
+.phone select {
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg) !important;
+  flex: 0 0 115px !important;
+  padding: 0 2rem 0 0.75rem !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background: var(--background-color) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 10px center / 16px !important;
+}
+
+.phone input {
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0 !important;
+  flex: 1 !important;
+  padding: 0 1rem !important;
+}
+
+/* Embla Slider Fullscreen Override */
+dialog:has(.embla) > article.card {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* Remove number input spinner arrows */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+
+input[type=number] {
+  -moz-appearance: textfield !important;
+}
+
+/* Wide Form layout for Create Publication */
+form.card.wide-form {
+  max-width: 800px !important;
+}
+
+.delete-thumb-btn:hover {
+  background-color: #ef4444 !important;
+  transform: scale(1.1);
 }

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SessionProvider } from "./context/SessionContext";
+import { PopupProvider } from "./context/PopupContext";
 
 // Componentes
 import Navbar from "./components/Navbar";
@@ -17,49 +18,51 @@ import Profile from "./views/Profile";
 function App() {
   return (
     <BrowserRouter>
-      <SessionProvider>
-        <div>
-          <Navbar />
-          <main>
-            <Routes>
-              {/* Rutas Públicas */}
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/registro" element={<Register />} />
-              <Route path="/catalogo" element={<Gallery />} />
+      <PopupProvider>
+        <SessionProvider>
+          <div>
+            <Navbar />
+            <main>
+              <Routes>
+                {/* Rutas Públicas */}
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/registro" element={<Register />} />
+                <Route path="/catalogo" element={<Gallery />} />
 
-              {/* Rutas Privadas */}
-              <Route 
-                path="/publicar" 
-                element={
-                  <PrivateRoute>
-                    <CreatePublication />
-                  </PrivateRoute>
-                } 
-              />
-              <Route 
-                path="/perfil" 
-                element={
-                  <PrivateRoute>
-                    <Profile />
-                  </PrivateRoute>
-                } 
-              />
-              <Route 
-                path="/publicacion/:id" 
-                element={
-                  <PrivateRoute>
-                    <ProductDetail />
-                  </PrivateRoute>
-                } 
-              />
-            </Routes>
-          </main>
-          <footer>
-            <small>© {new Date().getFullYear()} MinimalStore. Todos los derechos reservados.</small>
-          </footer>
-        </div>
-      </SessionProvider>
+                {/* Rutas Privadas */}
+                <Route 
+                  path="/publicar" 
+                  element={
+                    <PrivateRoute>
+                      <CreatePublication />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/perfil" 
+                  element={
+                    <PrivateRoute>
+                      <Profile />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/publicacion/:id" 
+                  element={
+                    <PrivateRoute>
+                      <ProductDetail />
+                    </PrivateRoute>
+                  } 
+                />
+              </Routes>
+            </main>
+            <footer>
+              <small>© {new Date().getFullYear()} MinimalStore. Todos los derechos reservados.</small>
+            </footer>
+          </div>
+        </SessionProvider>
+      </PopupProvider>
     </BrowserRouter>
   );
 }

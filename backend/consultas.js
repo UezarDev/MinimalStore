@@ -11,7 +11,7 @@ const pool = new Pool({
 
 // FUNCIÓN DE REGISTRO
 const registrarUsuario = async (usuario) => {
-    const { email, name, password, avatar_url, location, role } = usuario
+    const { email, name, password, avatar_url, location, phone, role } = usuario
 
     if (!email || !name || !password) {
         throw { code: 400, message: "Faltan campos obligatorios: email, name y password son requeridos." }
@@ -21,12 +21,12 @@ const registrarUsuario = async (usuario) => {
     const passwordEncriptada = bcrypt.hashSync(password, salt)
 
     const consulta = `
-        INSERT INTO Users (email, name, password, avatar_url, location, role) 
-        VALUES ($1, $2, $3, $4, $5, $6) 
-        RETURNING id, email, name;
+        INSERT INTO Users (email, name, password, avatar_url, location, phone, role) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7) 
+        RETURNING id, email, name, phone;
     `
     
-    const valores = [email, name, passwordEncriptada, avatar_url || null, location || null, role || 'client']
+    const valores = [email, name, passwordEncriptada, avatar_url || null, location || null, phone || null, role || 'client']
 
     try {
         const resultado = await pool.query(consulta, valores)
@@ -69,6 +69,7 @@ const verificarUsuario = async (email, password) => {
             name: usuario.name,
             role: usuario.role,
             location: usuario.location,
+            phone: usuario.phone,
             avatar_url: usuario.avatar_url
         }
 
@@ -82,6 +83,7 @@ const verificarUsuario = async (email, password) => {
 const obtenerProductos = async () => {
     const consulta = `
         SELECT p.*, 
+               u.name AS seller_name,
                COALESCE(
                    json_agg(
                        json_build_object('url', pi.url, 'position', pi.position)
@@ -89,7 +91,8 @@ const obtenerProductos = async () => {
                ) AS images
         FROM Products p
         LEFT JOIN Product_images pi ON p.id = pi.product_id
-        GROUP BY p.id
+        LEFT JOIN Users u ON p.seller_id = u.id
+        GROUP BY p.id, u.name
         ORDER BY p.created_at DESC;
     `
     try {
@@ -104,6 +107,9 @@ const obtenerProductos = async () => {
 const obtenerProductoPorId = async (id) => {
     const consulta = `
         SELECT p.*, 
+               u.name AS seller_name,
+               u.email AS seller_email,
+               u.phone AS seller_phone,
                COALESCE(
                    json_agg(
                        json_build_object('url', pi.url, 'position', pi.position)
@@ -111,8 +117,9 @@ const obtenerProductoPorId = async (id) => {
                ) AS images
         FROM Products p
         LEFT JOIN Product_images pi ON p.id = pi.product_id
+        LEFT JOIN Users u ON p.seller_id = u.id
         WHERE p.id = $1
-        GROUP BY p.id;
+        GROUP BY p.id, u.name, u.email, u.phone;
     `
     try {
         const { rows } = await pool.query(consulta, [id])
@@ -440,29 +447,29 @@ const obtenerCategorias = async () => {
 
 // MÓDULO: USERS (ADMIN/PROFILE)
 const obtenerUsuarios = async () => {
-    const consulta = "SELECT id, name, email, role, location, avatar_url FROM Users;"
+    const consulta = "SELECT id, name, email, role, location, phone, avatar_url FROM Users;"
     const { rows } = await pool.query(consulta)
     return rows
 };
 
 const obtenerUsuarioPorId = async (id) => {
-    const consulta = "SELECT id, name, email, role, location, avatar_url FROM Users WHERE id = $1;"
+    const consulta = "SELECT id, name, email, role, location, phone, avatar_url FROM Users WHERE id = $1;"
     const { rows } = await pool.query(consulta, [id])
     if (rows.length === 0) throw { code: 404, message: "Usuario no encontrado." }
     return rows[0]
 }
 
 const actualizarUsuario = async (id, datos) => {
-    const { name, email, role, location, avatar_url } = datos
-    if (!name || !email) throw { code: 400, message: "Nombre y email son obligatorios." }
+    const { name, role, location, phone, avatar_url } = datos
+    if (!name) throw { code: 400, message: "El nombre es obligatorio." }
 
     const consulta = `
         UPDATE Users 
-        SET name = $1, email = $2, role = $3, location = $4, avatar_url = $5
+        SET name = $1, role = $2, location = $3, phone = $4, avatar_url = $5
         WHERE id = $6
-        RETURNING id, name, email, role, location, avatar_url;
+        RETURNING id, name, email, role, location, phone, avatar_url;
     `
-    const valores = [name, email, role || 'client', location || null, avatar_url || null, id]
+    const valores = [name, role || 'client', location || null, phone || null, avatar_url || null, id]
     const { rows } = await pool.query(consulta, valores)
     if (rows.length === 0) throw { code: 404, message: "Usuario no encontrado para actualizar." }
     return rows[0]
@@ -476,17 +483,17 @@ const eliminarUsuario = async (id) => {
 }
 
 const crearUsuarioPorAdmin = async (usuario) => {
-    const { name, email, role, location, avatar_url } = usuario
+    const { name, email, role, location, phone, avatar_url } = usuario
     if (!name || !email) throw { code: 400, message: "Nombre y email son obligatorios." }
     
     const passwordTemporal = bcrypt.hashSync("claveTemporal123", 10)
     
     const consulta = `
-        INSERT INTO Users (name, email, password, role, location, avatar_url)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO Users (name, email, password, role, location, phone, avatar_url)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING id;
     `
-    const valores = [name, email, passwordTemporal, role || 'client', location || null, avatar_url || null]
+    const valores = [name, email, passwordTemporal, role || 'client', location || null, phone || null, avatar_url || null]
     const { rows } = await pool.query(consulta, valores)
     return rows[0]
 }

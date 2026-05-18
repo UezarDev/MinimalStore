@@ -2,45 +2,33 @@ import { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { User, Mail, Phone, X, Maximize, ChevronLeft, ChevronRight } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
-import mockData from "../data/mockups.json";
+import api from "../api/axios";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  const allProducts = [
-    ...mockData.catalog, 
-    ...mockData.userPosts, 
-    ...mockData.userFavorites
-  ];
-  
-  const foundProduct = allProducts.find(p => String(p.id) === String(id));
+  const [productData, setProductData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
   const [emblaRefFullscreen, emblaApiFullscreen] = useEmblaCarousel({ loop: true });
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  if (!foundProduct) {
-    return (
-      <div className="container" style={{ textAlign: 'center', padding: '6rem 2rem' }}>
-        <article className="card">
-          <h2>Producto no encontrado</h2>
-          <p>Lo sentimos, no pudimos encontrar el artículo que buscas.</p>
-          <button onClick={() => navigate('/catalogo')}>Volver al Catálogo</button>
-        </article>
-      </div>
-    );
-  }
-
-  const product = {
-    ...foundProduct,
-    seller: {
-      name: foundProduct.seller_name || "Vendedor Independiente",
-      email: "test@mail.com",
-      phone: "+1 2 3456 7890"
-    }
-  };
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await api.get(`/products/${id}`);
+        setProductData(response.data);
+      } catch (err) {
+        setError(err.response?.data?.message || "Error al cargar los detalles del producto.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [id]);
 
   const scrollPrev = useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev();
@@ -75,6 +63,28 @@ const ProductDetail = () => {
       emblaApiFullscreen.scrollTo(selectedIndex, true);
     }
   }, [isFullscreen, emblaApiFullscreen, selectedIndex]);
+
+  if (loading) return <p style={{ textAlign: "center", padding: "6rem" }}>Cargando detalles del producto...</p>;
+  if (error || !productData) {
+    return (
+      <div className="container" style={{ textAlign: 'center', padding: '6rem 2rem' }}>
+        <article className="card">
+          <h2>Producto no encontrado</h2>
+          <p>{error || "Lo sentimos, no pudimos encontrar el artículo que buscas."}</p>
+          <button onClick={() => navigate('/catalogo')}>Volver al Catálogo</button>
+        </article>
+      </div>
+    );
+  }
+
+  const product = {
+    ...productData,
+    seller: {
+      name: productData.seller_name || "Vendedor Independiente",
+      email: productData.seller_email || "vendedor@tienda.com",
+      phone: productData.seller_phone || "No especificado"
+    }
+  };
 
   return (
     <>
@@ -147,7 +157,17 @@ const ProductDetail = () => {
               </li>
             </ul>
 
-            <button className="secondary">
+            <button 
+              className="secondary"
+              onClick={() => {
+                if (product.seller.phone && product.seller.phone !== "No especificado") {
+                  const cleanPhone = product.seller.phone.replace(/\D/g, "");
+                  window.open(`https://wa.me/${cleanPhone}`, "_blank");
+                } else {
+                  window.open(`mailto:${product.seller.email}?subject=Interés en su artículo: ${product.name}`);
+                }
+              }}
+            >
               Contactar al Vendedor
             </button>
           </div>

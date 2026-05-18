@@ -77,7 +77,11 @@ app.post('/login', async (req, res) => {
             user: {
                 id: usuarioValido.id,
                 email: usuarioValido.email,
-                role: usuarioValido.role
+                name: usuarioValido.name,
+                role: usuarioValido.role,
+                location: usuarioValido.location,
+                phone: usuarioValido.phone,
+                avatar_url: usuarioValido.avatar_url
             }
         })
     } catch (error) {

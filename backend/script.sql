@@ -5,6 +5,7 @@ CREATE TABLE Users (
     password VARCHAR(255) NOT NULL,
     avatar_url TEXT, 
     location VARCHAR(100),
+    phone VARCHAR(20),
     role VARCHAR(20) DEFAULT 'client' 
 );
 
